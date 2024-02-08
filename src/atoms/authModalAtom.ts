@@ -2,7 +2,7 @@ import { atom } from "recoil";
 
 type AuthModalState = {
     isOpen: boolean;
-    type: 'login' | 'regiser' | 'forgotPassword';
+    type: 'login' | 'register' | 'forgotPassword';
 }
 
 const initialAuthModalState: AuthModalState = {
