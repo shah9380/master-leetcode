@@ -18,7 +18,7 @@ const ProblemsTable:React.FC<ProblemsTableProps> = ()=>{
                             <BsCheckCircle className='text-green-600' fontSize={"18"} width={"18"} />
                         </th>
                         <td className='px-6 py-4 font-medium'>
-                                <Link className='hover:text-blue-600' href={`/products/${doc.id}`}>
+                                <Link className='hover:text-blue-600' href={`/problems/${doc.id}`}>
                                     {doc.title}
                                 </Link>
                         </td>
