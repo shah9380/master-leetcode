@@ -85,4 +85,6 @@ export const search2DMatrix: Problem = {
 	handlerFunction: search2DMatrixHandler,
 	starterFunctionName: "function searchMatrix",
 	order: 5,
+	category: "",
+	difficulty: ""
 };

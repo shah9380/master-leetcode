@@ -106,4 +106,6 @@ export const reverseLinkedList: Problem = {
 	handlerFunction: reverseLinkedListHandler,
 	starterFunctionName: "function reverseLinkedList(",
 	order: 2,
+	category: "",
+	difficulty: ""
 };

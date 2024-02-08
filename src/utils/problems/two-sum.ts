@@ -80,4 +80,6 @@ const starterCodeTwoSum = `function twoSum(nums,target){
       starterCode: starterCodeTwoSum,
       order: 1,
       starterFunctionName: "function twoSum(",
+      category: "",
+      difficulty: ""
   };

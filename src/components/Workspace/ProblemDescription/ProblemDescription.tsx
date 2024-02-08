@@ -58,7 +58,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = (problem) =>{
 						{/* Examples */}
 						<div className='mt-4'>
 							{problem?.problem?.examples.map((example, index)=>(
-									(<div>
+									(<div key={index+1}>
 									<p className='font-medium text-white '>Example {index + 1}: </p>
 									{example?.img && 
 										(<img src={example?.img}></img>)
