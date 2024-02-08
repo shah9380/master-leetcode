@@ -43,13 +43,13 @@ const Login:React.FC<LoginProps> = () => {
 			<button
 				type='submit'
 				className='w-full text-white focus:ring-blue-300 font-medium rounded-lg
-                text-sm px-5 py-2.5 text-center bg-black/25 hover:bg-white/25 hover:text-blue-200
+                text-sm px-5 py-2.5 text-center bg-white/25 hover:bg-white/50 hover:text-blue-200
             '
 			>
 				Log In
 			</button>
 			<button className='flex w-full justify-end'>
-				<a href='#' className='text-sm block hover:underline w-full text-right'>
+				<a href='#' className='text-sm block hover:underline w-full text-white text-right'>
 					Forgot Password?
 				</a>
 			</button>
