@@ -1,36 +1,46 @@
-import { problems } from '../../mockfproblems/problems';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BsCheckCircle } from 'react-icons/bs';
+import { firestore } from '@/firebase/firebase';
+import { DBProblem } from '@/utils/types/problem';
 
 type ProblemsTableProps = {
-
+    setLoadingProblems: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ProblemsTable:React.FC<ProblemsTableProps> = ()=>{
+const ProblemsTable:React.FC<ProblemsTableProps> = ({setLoadingProblems})=>{
+    // const problems = 
+    const problems = useGetProblems(setLoadingProblems);
     return (
         <>
             <tbody>
-            {problems.map((doc, idx)=>{
+            {problems?.map((problem, idx)=>{
                 return(
-                    <tr className={`${idx % 2 == 1 ? 'bg-gray-700/25': ''}`} key={doc.id}>
+                    <tr className={`${idx % 2 == 1 ? 'bg-gray-700/25': ''}`} key={problem.id}>
                         <th className='px-2 py-4 font-medium whitespace-nowrap text-dark-green'>
                             <BsCheckCircle className='text-green-600' fontSize={"18"} width={"18"} />
                         </th>
                         <td className='px-6 py-4 font-medium'>
-                                <Link className='hover:text-blue-600' href={`/problems/${doc.id}`}>
-                                    {doc.title}
+                                {problem.link ?
+                                <Link className='hover:text-blue-600' href={problem.link} target='_blank'>
+                                    
                                 </Link>
+                                :
+                                
+                                <Link className='hover:text-blue-600' href={`/problems/${problem.id}`}>
+                                    {problem.title}
+                                </Link>}
                         </td>
-                        <td className={`${doc.difficulty=== "Easy" ? 'text-green-600' : (doc.difficulty=== 'Hard'? 'text-red-600': 'text-amber-600')} font-medium`}>
-                                {doc.difficulty}
+                        <td className={`${problem.difficulty=== "Easy" ? 'text-green-600' : (problem.difficulty=== 'Hard'? 'text-red-600': 'text-amber-600')} font-medium`}>
+                                {problem.difficulty}
                         </td>
                         <td className='px-6 py-4 font-medium'>
-                            {doc.category}
+                            {problem.category}
                         </td>
                         <td className='px-6 py-4 font-medium'>
-                            {doc.videoId ? (
-                                <Link href={`/video/${doc.videoId}`}>
+                            {problem.videoId ? (
+                                <Link href={`/video/${problem.videoId}`}>
                                 <p className='shadow-lg hover:bg-cyan-400/25 w-fit p-4 rounded-full active:scale-[0.90]'>▶️</p>
                             </Link>
                             ) : (<p className='text-gray-400'>Coming Soon</p>)}
@@ -56,3 +66,22 @@ const ProblemsTable:React.FC<ProblemsTableProps> = ()=>{
     )
 }
 export default ProblemsTable;
+
+function useGetProblems(setLoadingProblems: React.Dispatch<React.SetStateAction<boolean>>){
+    const [problems,setProblems] = useState<DBProblem[]>([]);
+
+    useEffect(()=>{
+        const getProblems = async ()=>{
+            const q = query(collection(firestore, "problems"), orderBy("order", "asc"))
+            const querySnapshot = await getDocs(q);
+            const tmp: DBProblem[] = [];
+            querySnapshot.forEach((doc)=>{
+                tmp.push({id:doc.id, ...doc.data()} as DBProblem)
+            });
+            setProblems(tmp);
+            setLoadingProblems(false)
+        }
+        getProblems()
+    },[setLoadingProblems])
+    return problems;
+}
