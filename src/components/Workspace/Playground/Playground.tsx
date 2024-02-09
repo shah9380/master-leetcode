@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PreferenceNav from './PreferenceNav/PreferenceNav';
 import { Splitter, SplitterPanel } from 'primereact/splitter';
 import CodeMirror from "@uiw/react-codemirror"
@@ -7,19 +7,70 @@ import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { javascript } from '@codemirror/lang-javascript';
 import EditorFooter from './EditorFooter';
 import { Problem } from '@/utils/types/problem';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth, firestore } from '@/firebase/firebase';
+import { problems } from '@/utils/problems';
+import { useRouter } from 'next/router';
+import { arrayUnion, doc, updateDoc } from 'firebase/firestore';
 
 type PlaygroundProps = {
-    problem: Problem
+    problem: Problem;
+    setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const Playground:React.FC<PlaygroundProps> = ({problem}) => {
+const Playground:React.FC<PlaygroundProps> = ({problem, setSuccess}) => {
     const boilerplate = problem.starterCode;
-    const[activeTestCaseId,setActiveTestCaseId] = useState<number>(0)
+    let[userCode,setUserCode] = useState<string>(boilerplate);
+    const[activeTestCaseId,setActiveTestCaseId] = useState<number>(0);
+    const [user] = useAuthState(auth);
+    const {query: {pid}} = useRouter();
+    const handleSubmit = async ()=>{
+        if(!user){
+            alert("Please Login First");
+            return;
+        }
+        try {
+            userCode = userCode.slice(userCode.indexOf(problem.starterFunctionName));
+            const cb = new Function(`return ${userCode}`)();//to convert te user string function to Function
+            const handler = problems[pid as string].handlerFunction;
+            if (typeof handler === "function") {
+				const success = handler(cb);
+				if (success) {
+					setSuccess(true);
+					setTimeout(() => {
+						setSuccess(false);
+					}, 4000);
+
+					const userRef = doc(firestore, "users", user.uid);
+					await updateDoc(userRef, {
+						solvedProblems: arrayUnion(pid),
+					});
+				}
+			}
+
+        } catch (error) {
+            console.log("you're wrong")
+            console.log(error);
+            alert("OoPs one or more testcases failed")
+        }
+    }
+    useEffect(() => {
+		const code = localStorage.getItem(`code-${pid}`);
+		if (user) {
+			setUserCode(code ? JSON.parse(code) : problem.starterCode);
+		} else {
+			setUserCode(problem.starterCode);
+		}
+	}, [pid, user, problem.starterCode]);
+    const onChange = (value: string)=>{
+        setUserCode(value);
+        localStorage.setItem(`code-${pid}`, JSON.stringify(value));
+    }
     return <div className='flex flex-col bg-dark-layer-1 relative w-full'>
             <PreferenceNav></PreferenceNav>
             <Splitter gutterSize={5} style={{minHeight: '300px'}} layout="vertical">
                     <SplitterPanel className="w-full overflow-auto bg-[#1E1E1E]">
-                            <CodeMirror height='full' value={boilerplate} theme={vscodeDark} extensions={[javascript()]} style={{fontSize: 16}}></CodeMirror>
+                            <CodeMirror height='full' value={userCode} theme={vscodeDark} extensions={[javascript()]} onChange={onChange} style={{fontSize: 16}}></CodeMirror>
                     </SplitterPanel>
                     <SplitterPanel className="w-full px-5 overflow-auto relative bg-[#1E1E1E]">
                             <div className='flex h-10 item-center space-x-6 w-full'>
@@ -53,7 +104,7 @@ const Playground:React.FC<PlaygroundProps> = ({problem}) => {
                                     {problem.examples[activeTestCaseId].outputText}
                                     </div>
                             </div>
-                            <EditorFooter></EditorFooter>
+                            <EditorFooter handleSubmit= {handleSubmit}></EditorFooter>
                     </SplitterPanel>
             </Splitter>
         </div>
